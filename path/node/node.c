@@ -76,3 +76,4 @@ void node_print(NODE *node){
      if (node != NULL)
         printf("\n-->node: %d\n", node->key);
 }
+
