@@ -12,10 +12,10 @@
     int path_get_size(PATH *path);  //
 
     NODE *path_get_head(PATH *path); // 
-    NODE *path_get_last(PATH *path); //
+    NODE *path_get_tail(PATH *path); //
 
     bool path_set_head(PATH *path, NODE *head); //
-    bool path_set_last(PATH *path, NODE *last); // 
+    bool path_set_tail(PATH *path, NODE *tail); // 
     bool path_add_after(PATH *path, NODE *node, int key);  //
     bool path_unshift(PATH *path, NODE *node); // 
     bool path_push(PATH *path, NODE *node); //
@@ -31,8 +31,8 @@
 
     NODE *path_delete(PATH *path, int key); //
     NODE *path_delete_first(PATH *path); //
-    NODE *path_delete_last(PATH *path); //
-    NODE *path_get_last(PATH *path); //
+    NODE *path_delete_tail(PATH *path); //
+    NODE *path_get_tail(PATH *path); //
     NODE *path_search(PATH *path, int key); //
 
     PATH *path_new();  // 

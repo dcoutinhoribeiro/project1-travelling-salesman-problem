@@ -7,7 +7,7 @@
 struct path_
 {
     NODE *head;
-    NODE *last
+    NODE *tail
 };
 
 bool path_unshift(PATH *path, NODE *node)
@@ -17,7 +17,7 @@ bool path_unshift(PATH *path, NODE *node)
 
     if (path_is_empty(path))
     {
-        path_set_last(path, node);
+        path_set_tail(path, node);
     }
     else
     {
@@ -62,8 +62,8 @@ PATH *path_split_after(PATH *path, int key) {
     path_set_head(after_path, node_get_next(found_node));
     node_set_prev(node_get_next(found_node), NULL);
     node_set_next(found_node, NULL);
-    path_set_last(after_path, path_get_last(path));
-    path_set_last(path, NULL);
+    path_set_tail(after_path, path_get_tail(path));
+    path_set_tail(path, NULL);
 
     return after_path;
 }
@@ -72,8 +72,8 @@ void path_concat(PATH* path_a, PATH* path_b) {
     if(path_a == NULL || path_b == NULL) return;
 
     NODE *temp_node;
-    temp_node = path_get_last(path_a);
-    path_set_last(path_a, path_get_last(path_b));
+    temp_node = path_get_tail(path_a);
+    path_set_tail(path_a, path_get_tail(path_b));
     node_set_next(temp_node, path_get_head(path_b));
     node_set_prev(path_get_head(path_b), temp_node);
 
@@ -115,22 +115,22 @@ void path_print(PATH *path) {
             printf (" -> %d ", node_get_key(current));
 }
 
-bool path_add_last(PATH *path, NODE *node)
+bool path_add_tail(PATH *path, NODE *node)
 {
     if (path == NULL || node == NULL || path_is_full(path))
         return false;
 
     if (path_is_empty(path))
     {
-        path_set_last(path, node);
+        path_set_tail(path, node);
     }
     else
     {
-        node_set_next(path_get_last(path), node);
-        node_set_prev(node, path_get_last(path));
+        node_set_next(path_get_tail(path), node);
+        node_set_prev(node, path_get_tail(path));
     }
 
-    path_set_last(path, node);
+    path_set_tail(path, node);
 
     return true;
 }
@@ -194,10 +194,10 @@ bool path_add_after(PATH *path, NODE *node, int key)
     if (found == NULL)
         return false;
 
-    if (node_get_key(path_get_last(path)) == key)
+    if (node_get_key(path_get_tail(path)) == key)
     {
         node_set_next(node, NULL);
-        path_set_last(path_get_last(path), node);
+        path_set_tail(path_get_tail(path), node);
     }
     else
     {
@@ -220,7 +220,7 @@ NODE *path_delete_first(PATH *path)
     temp = path_get_head(path);
 
     if (node_get_next(path_get_head(path)) == NULL)
-        path_set_last(path, NULL);
+        path_set_tail(path, NULL);
     else
         node_set_next(path_get_head(path), NULL);
 
@@ -229,20 +229,20 @@ NODE *path_delete_first(PATH *path)
     return temp;
 }
 
-NODE *path_delete_last(PATH *path)
+NODE *path_delete_tail(PATH *path)
 {
     if (path == NULL || path_is_empty(path))
         return NULL;
 
     NODE *temp;
-    temp = path_get_last(path);
+    temp = path_get_tail(path);
 
     if (path_get_head(path) == NULL)
         path_set_head(path, NULL);
     else
-        node_set_prev(path_get_last(path), NULL);
+        node_set_prev(path_get_tail(path), NULL);
 
-    path_set_last(path, node_get_prev(path_get_last(path)));
+    path_set_tail(path, node_get_prev(path_get_tail(path)));
 
     return temp;
 }
@@ -274,8 +274,8 @@ NODE *path_delete(PATH *path, int key)
     else
         node_set_next(node_get_prev(deleted), node_get_next(deleted));
 
-    if (path_get_key(deleted) == path_get_key(path_get_last(path)))
-        path_set_last(path, node_get_prev(deleted));
+    if (path_get_key(deleted) == path_get_key(path_get_tail(path)))
+        path_set_tail(path, node_get_prev(deleted));
     else
         node_set_prev(node_get_next(deleted), node_get_prev(deleted));
 
@@ -309,11 +309,11 @@ bool path_set_head(PATH *path, NODE *head)
     return false;
 }
 
-bool path_set_last(PATH *path, NODE *last)
+bool path_set_tail(PATH *path, NODE *tail)
 {
     if (path != NULL)
     {
-        path->last = last;
+        path->tail = tail;
         return true;
     }
     return false;
@@ -324,9 +324,9 @@ NODE *path_get_head(PATH *path)
     return path != NULL ? path->head : NULL;
 }
 
-NODE *path_get_last(PATH *path)
+NODE *path_get_tail(PATH *path)
 {
-    return path != NULL ? path->last : NULL;
+    return path != NULL ? path->tail : NULL;
 }
 
 bool path_is_empty(PATH *path)
