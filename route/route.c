@@ -45,7 +45,7 @@ ROUTE *route_new(int size, PATH *path)
                : NULL;
 }
 
-ROUTE *get_next_permutation(ROUTE *route)
+ROUTE *route_get_next_permutation(ROUTE *route)
 {
     PATH *path, *split_path;
     int j, larg_j;
@@ -88,7 +88,7 @@ int route_get_larg_j_lg_i(ROUTE *route, int i)
     return j;
 }
 
-bool route_is_not_last_permutation(ROUTE *route)
+bool route_is_not_tail_permutation(ROUTE *route)
 {
     route != NULL &&route_get_largest_largest(route) == -1 ? false : true;
 }
@@ -156,13 +156,13 @@ ROUTE *route_get_best_route(DISTANCE_MATRIX *distance_matrix)
 
         if (
             shortest_distance_so_far > route_distance ||
-            node_get_key(path_get_last(route_get_path(route))) == route_get_size(route))
+            node_get_key(path_get_tail(route_get_path(route))) == route_get_size(route))
             continue;
 
         shortest_distance_so_far = route_distance;
         path_copy(route_get_path(route), path);
 
-    } while (route_is_not_last_permutation(route));
+    } while (route_is_not_tail_permutation(route));
 
     return route != NULL ? route : NULL;
 }
