@@ -16,7 +16,7 @@ void main (int argc, char **argv){
     printf("\nDigite a cidade de origem: \n");
     scanf('%d', &start);
 
-    route_print_best_route(start, distance_matrix);
+    route_print_best_route(distance_matrix);
 
     return;
 }
