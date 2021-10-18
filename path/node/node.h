@@ -10,6 +10,7 @@
 	bool node_set_key(NODE *node, int key);
 	bool node_set_next(NODE *node, NODE *next);
 	bool node_set_prev(NODE *node, NODE *prev);
+	bool node_delete_key(NODE **node);//adicionei
 	void node_print(NODE *node);
 
 	NODE *node_create(int key);
