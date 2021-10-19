@@ -1,22 +1,34 @@
 #include <stdio.h>
-#include "distance_matrix/distance_matrix.h"
-#include "route/route.h"
+#include "path/path.h"
+#include "path/node/node.h"
 
 void main (int argc, char **argv){
-    DISTANCE_MATRIX *distance_matrix;
+    PATH *path, *path2;
 
-    int start;
+    path = path_new();
 
-    char *filename;
-    printf("\nDigite o nome do arquivo com a matrix de distancias: \n");
-    scanf('%s', filename);
+    printf("\n Hello World \n");
 
-    distance_matrix = distance_matrix_read_distance_matrix_file(filename);
+    path_push(path, node_create(1));
+    path_push(path, node_create(2));
+    path_push(path, node_create(3));
+    path_push(path, node_create(4));
+    path_push(path, node_create(5));
+    
+    path2 = path_new();
+    path_push(path2, node_create(6));
 
-    printf("\nDigite a cidade de origem: \n");
-    scanf('%d', &start);
+    path_concat(&path, &path2);
 
-    route_print_best_route(distance_matrix);
+    path_add_after(path, 4, node_create(10));
 
-    return;
+    path_print(path);
+
+    path_swap(path, 1, 6);
+    path_print(path);
+    
+    path_free(&path);
+ 
+    path_print(path);
+
 }

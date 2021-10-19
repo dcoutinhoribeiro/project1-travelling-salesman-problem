@@ -46,22 +46,21 @@ bool path_unshift(PATH *path, NODE *node)
  *Função para reverter um PATH
  * @param *path  uma variavel ponteiro de PATH com um caminho possível
  */
-void path_reverse(PATH *path)
+PATH *path_reverse(PATH *path)
 {
-    if (path == NULL || path_is_empty(path)) return;
+    if (path == NULL || path_is_empty(path)) return NULL;
+ 
+    NODE *current;
+    PATH *reverse_path;
 
-    NODE *current, **temp_node;
-    //troquei node_get_prev por node get_next
-     for (current = path_get_head(path); current != NULL; current = node_get_next(current)) {
-         *temp_node = node_get_prev(current);
-         
-         node_set_prev(current, node_get_next(current));//
-         node_set_next(current, *temp_node);        
+    reverse_path = path_new();
+
+    for(current = path_get_head(path); current != NULL; current = node_get_next(current)) {        
+      path_unshift(reverse_path, node_create(node_get_key(current)));
     }
 
-    if(*temp_node != NULL) path_set_head(path, node_get_prev(*temp_node));
+    return reverse_path;
 
-    node_free(temp_node);
 }
 
 /*
@@ -107,17 +106,35 @@ void path_concat(PATH** path_a, PATH** path_b) {
     path_free(path_b);
 }
 
+bool path_add_after(PATH *path, int index, NODE *node) {
+    if (path == NULL) return false;
+
+    NODE *found, *after_found; 
+
+    found = path_search(path, index);
+    after_found = node_get_next(found);
+
+    if(found == NULL) return false;
+
+    if(path_get_size(path) == 1) {
+        return path_push(path, node);
+    }
+
+   return node_set_next(node, after_found) && node_set_prev(node, found) && node_set_next(found, node) && node_set_prev(after_found, node);
+}
+
 /*
  *Função para trocar um NODE de um PATH por outro NODE
  * @param  *path  uma variavel ponteiro de PATH com um caminho possível
  * @param   int   uma variavel do tipo inteiro que contem a key de NODE
  * @param   int   uma variavel do tipo inteiro que contem a key de NODE
  */
+
 void path_swap(PATH *path, int i, int j)
 {
-    if (path == NULL)
-        return;
-    NODE *item_a, *item_b, **item_aux;
+    if (path == NULL) return;
+
+    NODE *item_a, *item_b, *prev_a, *prev_b, *next_a, *next_b, *prev_aux_a, *next_aux_a;
 
     item_a = path_search(path, i);
     item_b = path_search(path, j);
@@ -125,15 +142,11 @@ void path_swap(PATH *path, int i, int j)
     if (item_a == NULL || item_b == NULL)
         return;
 
-    *item_aux = node_create(node_get_key(item_b));
-
-    node_set_prev(item_b, node_get_prev(item_a));
-    node_set_next(item_b, node_get_next(item_a));
-
-    node_set_prev(item_a, NULL);
-    node_set_next(item_a, NULL);
-
-    node_free(item_aux);
+   path_add_after(path, i, node_create(INT_MAX - j));
+   path_delete(path,i);
+   path_add_after(path, j, node_create(i));
+   path_delete(path,j);
+   node_set_key(path_search(path, INT_MAX - j), j);
 }
 
 /*
@@ -147,42 +160,23 @@ void path_print(PATH *path) {
 
     NODE *current;
 
-    for(current = path_get_head(path); current != NULL; current = node_get_next(current))
-        /*if(node_get_key(current) == path_get_size(path)) 
-            printf (" %d ", node_get_key(current));*/
-        if((current == path_get_head(path)) || (current == path_get_tail(path))) 
+    printf ("\n ");
+
+    for(current = path_get_head(path); current != NULL; current = node_get_next(current)) {
+        if(current == path_get_head(path)) 
             printf(" %d ", node_get_key(current));
         else 
             printf (" -> %d ", node_get_key(current)); 
-}
+    }
 
+    printf ("\n ");
+
+}
 /*
  *Função para adicionar no final
  * @param  *path  uma variavel ponteiro de PATH com um caminho possível
  * @retun  um booleano informando se a operação deu certo
  */
-bool path_add_tail(PATH *path, NODE *node)
-{
-    if (path == NULL || node == NULL || path_is_full(path))
-        return false;
-
-    if (path_is_empty(path))
-    {
-        path_set_tail(path, node);
-        //adicionei path_set_head
-        path_set_head(path,node);
-    }
-    else
-    {
-        node_set_next(path_get_tail(path), node);
-        node_set_prev(node, path_get_tail(path));
-    }
-
-    path_set_tail(path, node);
-
-    return true;
-}
-
 /*
  *Função para checar se uma caminho está vazio
  * @param  *path  uma variavel ponteiro de PATH com um caminho possível
@@ -205,27 +199,26 @@ bool path_is_full(PATH *path)
 
     return path_get_size(path) == TAM_MAX;
 };
-
-//Essa função copia um path ou checa se e igual a outro path?
-void path_copy(PATH *path, PATH *copy)
+bool path_push(PATH *path, NODE *node)
 {
-    if (path == NULL)
+    if (path == NULL || node == NULL || path_is_full(path))
+        return false;
+
+    if (path_is_empty(path))
     {
-        copy = NULL;
-        return;
+        path_set_tail(path, node);
+        //adicionei path_set_head
+        path_set_head(path,node);
+    }
+    else
+    {
+        node_set_next(path_get_tail(path), node);
+        node_set_prev(node, path_get_tail(path));
     }
 
-    NODE *current;
-    PATH **path_copy;
-    *path_copy = path_new();
+    path_set_tail(path, node);
 
-    //colocando cada elemento do path antigo no path novo
-    for (current = path_get_head(path); current != NULL; current = node_get_next(current))
-        path_push(*path_copy, current);
-
-    copy = *path_copy;
-    path_free(path_copy);
-
+    return true;
 }
 
 /*se for pra copiar um path
@@ -326,7 +319,7 @@ bool path_free(PATH **path) {
  * @param  *path  uma variavel ponteiro de PATH com um path qualquer
  * @return retorna o NODE que estava no comeco do PATH 
  */
-NODE *path_delete_first(PATH *path)
+NODE *path_delete_head(PATH *path)
 {
     if (path == NULL || path_is_empty(path))
         return NULL;
@@ -334,17 +327,15 @@ NODE *path_delete_first(PATH *path)
     NODE *temp;
     temp = path_get_head(path);
 
-    if (node_get_next(path_get_head(path)) == NULL)
-    {
+    if(path_get_size(path) == 1) {
+        path_set_head(path, NULL);
         path_set_tail(path, NULL);
-        return NULL;
-    }
-    else
-    {
-        node_set_next(path_get_head(path), NULL);
-    }
 
-    path_set_head(path, node_get_next(path_get_head(path)));
+        return temp;
+    }
+    
+    node_set_prev(node_get_next(temp), NULL);
+    path_set_head(path, node_get_next(temp));
 
     return temp;
 }
@@ -356,15 +347,21 @@ NODE *path_delete_first(PATH *path)
  */
 NODE *path_delete_tail(PATH *path)
 {
-    if (path == NULL || path_is_empty(path))
+   if (path == NULL || path_is_empty(path))
         return NULL;
 
     NODE *temp;
     temp = path_get_tail(path);
 
-    node_set_next(node_get_prev(path_get_tail(path)), NULL);
+    if(path_get_size(path) == 1) {
+        path_set_head(path, NULL);
+        path_set_tail(path, NULL);
 
-    path_set_tail(path, node_get_prev(path_get_tail(path)));
+        return temp;
+    }
+
+    node_set_next(node_get_prev(temp), NULL);
+    path_set_tail(path, node_get_prev(temp));
 
     return temp;
 }
@@ -497,12 +494,7 @@ NODE *path_get_tail(PATH *path)
  */
 bool path_is_empty(PATH *path)
 {
-    if((path->head = NULL) && (path->tail = NULL))
-    {
-        return true;
-    }
-
-    return false;
+    return path_get_head(path) == NULL && path_get_tail(path) == NULL;
 }
 
 /*
@@ -520,5 +512,4 @@ PATH *path_new(void)
     }
 
     return path_set_head(path, NULL) && path_set_tail(path, NULL) ? path : NULL;
-
 }
