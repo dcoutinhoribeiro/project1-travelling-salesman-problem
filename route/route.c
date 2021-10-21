@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+/*
 #include "route.h"
 #include "../path/path.h"
-#include "../path/node/node.h"
-#include "../distance_matrix/distance_matrix.h"
+#include "../path/path_node/path_node.h"
+#include "../tsp/distance_list/distance_list.h"
 
 struct route_
 {
@@ -44,6 +44,22 @@ ROUTE *route_new(int size, PATH *path)
                ? route
                : NULL;
 }
+int route_get_distance(ROUTE *route, DISTANCE_LIST *distance_list)
+{
+    if (route == NULL || distance_list == NULL)
+        return NULL;
+
+    int size, i, route_distance = 0;
+    size = path_get_size(route_get_path(route));
+
+    for (i = 1; i <= size; i++)
+    {
+        route_distance += distance_list_node_get_distance_from_to(distance_list, i - 1, i);
+    }
+    route_distance += distance_list_node_get_distance_from_to(distance_list, 1, size);
+
+    return route_distance;
+}
 
 ROUTE *route_get_next_permutation(ROUTE *route)
 {
@@ -74,12 +90,12 @@ int route_get_larg_j_lg_i(ROUTE *route, int i)
 
     for (i = i; i < size; i++)
     {
-        NODE *node_a, *node_b;
+        PATH_NODE  *path_node_a, *path_node_b;
 
-        node_a = path_search(i - 1, path);
-        node_b = path_search(i, path);
+        path_node_a = path_search(i - 1, path);
+        path_node_b = path_search(i, path);
 
-        if (node_get_key(node_a) < node_get_key(node_b))
+        if (path_node_get_key(path_node_a) < path_node_get_key(path_node_b))
         {
             j = i - 1;
         }
@@ -98,47 +114,30 @@ PATH *route_get_path(ROUTE *route)
     return route != NULL ? route->path : NULL;
 }
 
-int route_get_distance(ROUTE *route, DISTANCE_MATRIX *distance_matrix)
-{
-    if (route == NULL || distance_matrix == NULL)
-        return NULL;
-
-    int size, i, route_distance = 0;
-    size = path_get_size(route_get_path(route));
-
-    for (i = 1; i <= size; i++)
-    {
-        route_distance += distance_matrix_get_node_distance(distance_matrix, i - 1, i);
-    }
-    route_distance += distance_matrix_get_node_distance(distance_matrix, 1, size);
-
-    return route_distance;
-}
-
 int route_get_size(ROUTE *route) {
     if (route == NULL) return NULL; 
 
     return route->size;
 }
 
-ROUTE *route_get_best_route(DISTANCE_MATRIX *distance_matrix)
+ROUTE *route_get_best_route(DISTANCE_LIST *distance_list)
 {
-    if (distance_matrix == NULL)
+    if (distance_list == NULL)
         return NULL;
 
     int i, size, shortest_distance_so_far = INT_MAX;
     ROUTE *route;
     PATH *path;
 
-    size = distance_matrix_get_size(distance_matrix);
+    size = distance_list_get_size(distance_list);
     path = path_new();
 
     for(i = 1; i <= size; i++){
-        NODE *node;
+        PATH_NODE  *path_node;
 
-        node = node_create(i);
+        path_node = path_node_create(i);
 
-        path_push(path, node);
+        path_push(path, path_node);
     }
 
     if (path == NULL)
@@ -152,11 +151,11 @@ ROUTE *route_get_best_route(DISTANCE_MATRIX *distance_matrix)
         if (route == NULL)
             break;
 
-        int route_distance = route_get_distance(route, distance_matrix);
+        int route_distance = route_get_distance(route, distance_list);
 
         if (
             shortest_distance_so_far > route_distance ||
-            node_get_key(path_get_tail(route_get_path(route))) == route_get_size(route))
+            path_node_get_key(path_get_tail(route_get_path(route))) == route_get_size(route))
             continue;
 
         shortest_distance_so_far = route_distance;
@@ -169,14 +168,15 @@ ROUTE *route_get_best_route(DISTANCE_MATRIX *distance_matrix)
 
 void route_free(ROUTE **route) {
     if (route == NULL) return;
-    NODE *current; 
+    PATH_NODE  *current; 
 
-    for(current = node_get_next(path_get_head(route_get_path(*route))); current != NULL; current = node_get_next(current)) {
-        node_free(node_get_prev(current));
-        node_set_prev(current, NULL);
+    for(current = path_node_get_next(path_get_head(route_get_path(*route))); current != NULL; current = path_node_get_next(current)) {
+        path_node_free(path_node_get_prev(current));
+        path_node_set_prev(current, NULL);
     }
     
-    node_free(current); 
+    path_node_free(current); 
     free(*route);
     route = NULL;
 }
+*/
