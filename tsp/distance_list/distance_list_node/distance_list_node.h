@@ -1,5 +1,5 @@
-#ifndef DISTANCE_LIST_NODE _H
-	#define DISTANCE_LIST_NODE _H
+#ifndef DISTANCE_LIST_NODE_H
+	#define DISTANCE_LIST_NODE_H
 	#include <stdbool.h>
 
 	typedef struct distance_list_node_ DISTANCE_LIST_NODE ;

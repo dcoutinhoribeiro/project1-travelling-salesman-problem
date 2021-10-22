@@ -1,5 +1,5 @@
-#ifndef PATH_NODE _H
-	#define PATH_NODE _H
+#ifndef PATH_NODE_H
+	#define PATH_NODE_H
 	#include <stdbool.h>
 
 	typedef struct path_node_ PATH_NODE ;

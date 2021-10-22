@@ -3,7 +3,7 @@
 
     #define PATH_H 
 
-    #define TAM_MAX 10 /*estimativa do tamanho máximo da path*/ 
+    #define TAM_MAX_PATH 13 /*estimativa do tamanho máximo da path*/ 
     #define INT_MAX 2147483647
 
     #include "path_node/path_node.h"
@@ -23,7 +23,6 @@
     void path_swap(PATH *path, int i, int j); // @@
     void path_free(PATH **path); // 
     void path_print(PATH *path); // @@
-    void path_concat(PATH **path_a, PATH **path_b); //
 
     PATH_NODE  *path_delete(PATH *path, int key); // @@
     PATH_NODE  *path_delete_head(PATH *path); // @

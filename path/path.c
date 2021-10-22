@@ -84,7 +84,8 @@ PATH *path_split_after(PATH *path, int key) {
     path_node_set_prev(path_node_get_next(found_path_node), NULL);
     path_node_set_next(found_path_node, NULL);
     path_set_tail(after_path, path_get_tail(path));
-    path_set_tail(path, NULL);
+    path_set_tail(path, found_path_node);
+
 
     return after_path;
 }
@@ -94,17 +95,6 @@ PATH *path_split_after(PATH *path, int key) {
  * @param  *path  uma variavel ponteiro de PATH com um caminho possível
  * @param  *path  uma variavel ponteiro de PATH com um caminho possível 
  */
-void path_concat(PATH** path_a, PATH** path_b) {
-    if(*path_a == NULL || *path_b == NULL) return;
-
-    PATH_NODE  *temp_path_node;
-    temp_path_node = path_get_tail(*path_a);
-    path_set_tail(*path_a, path_get_head(*path_b));//troquei path_get_tail por path_get_head
-    path_node_set_next(temp_path_node, path_get_head(*path_b));
-    path_node_set_prev(path_get_head(*path_b), temp_path_node);
-
-    path_free(path_b);
-}
 
 bool path_add_after(PATH *path, int index, PATH_NODE  *path_node) {
     if (path == NULL) return false;
@@ -134,7 +124,7 @@ void path_swap(PATH *path, int i, int j)
 {
     if (path == NULL) return;
 
-    PATH_NODE  *item_a, *item_b, *prev_a, *prev_b, *next_a, *next_b, *prev_aux_a, *next_aux_a;
+    PATH_NODE  *item_a, *item_b;
 
     item_a = path_search(path, i);
     item_b = path_search(path, j);
@@ -197,21 +187,22 @@ bool path_is_full(PATH *path)
     if (path == NULL)
         return true;
 
-    return path_get_size(path) == TAM_MAX;
+    return path_get_size(path) == TAM_MAX_PATH;
 };
 bool path_push(PATH *path, PATH_NODE  *path_node)
 {
+
     if (path == NULL || path_node == NULL || path_is_full(path))
         return false;
 
+    
     if (path_is_empty(path))
     {
-        path_set_tail(path, path_node);
-        //adicionei path_set_head
         path_set_head(path,path_node);
     }
     else
     {
+        path_node_set_next(path_node, NULL);
         path_node_set_next(path_get_tail(path), path_node);
         path_node_set_prev(path_node, path_get_tail(path));
     }

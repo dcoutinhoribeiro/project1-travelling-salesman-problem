@@ -7,5 +7,5 @@
 
     void tsp_print_shortest_route_from_file(char* filename);
     
-    DISTANCE_LIST  *tsp_read_distance_file (char* filename);
+    DISTANCE_LIST  *tsp_read_distance_file (char* filename, int *size);
 #endif

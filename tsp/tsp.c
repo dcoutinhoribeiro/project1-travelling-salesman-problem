@@ -4,21 +4,21 @@
 #include "distance_list/distance_list.h"
 #include "../route/route.h"
 
-DISTANCE_LIST *tsp_read_distance_file (char* filename)
+DISTANCE_LIST *tsp_read_distance_file (char* filename, int * size)
 {
     DISTANCE_LIST *distance_list = distance_list_new();
 
     if(distance_list == NULL) return NULL; 
 
-    FILE* file = fopen (filename, "r");
-    int i = 0, size = 0;
+    FILE* file = fopen(filename, "r");
+    int i = 0;
 
-    size = fscanf (file, "%d", &i);     
+    fscanf(file, "%d", size);     
 
-    while(!!feof (file)){ 
+    while(!feof (file)){ 
         int from, to, distance;
 
-        fscanf("%d %d %d", &from, &to, &distance);
+        fscanf(file,"%d %d %d", &from, &to, &distance);
 
         DISTANCE_LIST_NODE *distance_list_node;
 
@@ -40,9 +40,13 @@ DISTANCE_LIST *tsp_read_distance_file (char* filename)
 
 int tsp_get_shortest_route_from_file(char* filename) {
     DISTANCE_LIST *distance_list = distance_list_new();
+    
+    int size = 0;
+    distance_list = tsp_read_distance_file (filename, &size);
+    
+    route_print_best_route(distance_list, size);
+}
 
-    distance_list = tsp_read_distance_file (filename);
-    distance_list_print(distance_list);
-
-
+void tsp_print_shortest_route_from_file(char* filename) {
+    tsp_get_shortest_route_from_file(filename);
 }
