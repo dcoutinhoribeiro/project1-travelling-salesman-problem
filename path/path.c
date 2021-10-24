@@ -49,7 +49,9 @@ void path_populate(PATH *path, int size, int start, bool is_random) {
     int i;
     if (is_random == false) {
         for(i = 1; i <= size; i++) {
-            path_push(path, path_node_create(i));
+            if(i != start) {
+                path_push(path, path_node_create(i));
+            }
         }
     } else {
         while(path_get_size(path) != size) {
@@ -99,6 +101,10 @@ int path_calculate_distance(PATH *path, DISTANCE_LIST *distance_list, int start)
         return NOT_FOUND;
 
     int size, i, head_to_tail = 0, partial_distance;
+    int start_to_head = distance_list_node_get_distance_from_to(distance_list, path_node_get_key(path_get_head(path)), start);
+    int tail_to_start = distance_list_node_get_distance_from_to(distance_list, path_node_get_key(path_get_tail(path)), start);
+    
+    if(start_to_head == NOT_FOUND || tail_to_start == NOT_FOUND) return NOT_FOUND;
 
     PATH_NODE *current;
 
@@ -111,7 +117,7 @@ int path_calculate_distance(PATH *path, DISTANCE_LIST *distance_list, int start)
         head_to_tail += partial_distance;
     }
  
-    return head_to_tail;
+    return start_to_head + head_to_tail + tail_to_start;
 }
 
 

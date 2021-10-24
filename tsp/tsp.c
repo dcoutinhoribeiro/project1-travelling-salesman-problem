@@ -64,7 +64,7 @@ void tsp_solve_brute_force(char* filename) {
 
     long milliseconds = (clock_end - clock_start);
 
-    path_print(path);
+    path_print_with_start(path, start);
 
     if (LOG == true) {
         printf("\n DISTANCIA MELHOR ROTA:  %d \n", path_calculate_distance(path, distance_list, start));
