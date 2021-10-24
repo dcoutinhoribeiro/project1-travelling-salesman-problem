@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
 #include "path.h"
 #include "path_node/path_node.h"
+#include "../tsp/distance_list/distance_list.h"
 
 struct path_
 {
@@ -10,107 +12,145 @@ struct path_
     PATH_NODE  *tail;
 };
 
-/*
- *Função para adicionar um PATH_NODE  a um PATH
- * @param *path  uma variavel ponteiro de PATH com um caminho possível
- * @param *path_node  uma variavel ponteiro de PATH_NODE  que contém o número de uma cidade   
- * @retun  um booleano informando se a operação deu certo
- */
 bool path_unshift(PATH *path, PATH_NODE  *path_node)
 {
     if (path == NULL || path_node == NULL || path_is_full(path))
         return false;
 
-    if (path_is_empty(path))
-    {
-        //se o caminho esta vazio, o no passa a ser comeco desse caminho
-        path_set_tail(path, path_node);
+    if(path_get_head(path) == NULL) {
+        path_set_head(path, path_node);
+        path_set_tail(path, path_node); 
+        path_node_set_next(path_node, NULL);
+        path_node_set_prev(path_node, NULL);
+        
+        return true;
+    } else 
+        return path_insert_before(path, path_get_head(path), path_node);
+}
+
+void path_copy_to(PATH* path, PATH *source_path) {
+    if (path == NULL || source_path == NULL) return; 
+
+    PATH_NODE *current;
+
+    PATH *new_path;
+    
+    path_free(&path);
+
+    new_path = path_new();
+
+    for(current = path_get_head(source_path); current != NULL; current = path_node_get_next(current)) 
+        path_push(new_path, path_node_create(path_node_get_key(current)));
+
+    path = new_path;
+}
+
+void path_populate(PATH *path, int size, int start, bool is_random) {
+    int i;
+    if (is_random == false) {
+        for(i = 1; i <= size; i++) {
+            path_push(path, path_node_create(i));
+        }
+    } else {
+        while(path_get_size(path) != size) {
+             int random = (rand() % size) + 1; //gera x aleatorio tq x pertence a [1,size]
+            
+            if(path_search(path, random) == NULL) 
+                path_push(path, path_node_create(random));
+        } 
     }
-    else
-    {
-        //se o caminho nao esta vazio, entao o topo do caminho aponta para 
-        //o novo no 
-        path_node_set_prev(path_get_head(path), path_node);
+}
+
+PATH *path_get_next_permutation(PATH *path)
+{
+    PATH_NODE *current;
+    PATH *aux_path;
+    int x = NOT_FOUND, y = NOT_FOUND, i;
+  
+    aux_path = path_new();
+
+    for(current = path_node_get_next(path_get_head(path)); current != NULL; current = path_node_get_next(current))
+        if(path_node_get_key(current) > path_node_get_key(path_node_get_prev(current))) x = path_node_get_key(path_node_get_prev(current));
+
+    if (x == NOT_FOUND) return NULL;
+
+    for(current = path_get_head(path); current != NULL; current = path_node_get_next(current))
+        if(path_node_get_key(current) > x) y = path_node_get_key(current);
+
+    path_swap(path, x, y);
+    
+    for(current = path_node_get_next(path_search(path, y)); current != NULL; current = path_node_get_next(current)) 
+        path_unshift(aux_path, path_node_create(path_node_get_key(current)));
+   
+    for(current = path_get_head(aux_path); current != NULL; current = path_node_get_next(current)){
+        path_delete(path, path_search(path, path_node_get_key(current)));
+        path_push(path, path_node_create(path_node_get_key(current)));
     }
 
-    //next de no aponta para o topo de path
-    path_node_set_next(path_node, path_get_head(path));
+    path_free(&aux_path);
 
-    //o no e definido como o topo do caminho
-    path_set_head(path, path_node);
+    return path;
+};
+
+
+int path_calculate_distance(PATH *path, DISTANCE_LIST *distance_list, int start)
+{
+    if (path == NULL || distance_list == NULL)
+        return NOT_FOUND;
+
+    int size, i, head_to_tail = 0, partial_distance;
+
+    PATH_NODE *current;
+
+    for(current = path_node_get_next(path_get_head(path)); current != NULL; current = path_node_get_next(current))
+    {   
+        partial_distance = distance_list_node_get_distance_from_to(distance_list, path_node_get_key(path_node_get_prev(current)), path_node_get_key(current));
+
+        if(partial_distance == -1) return NOT_FOUND;
+
+        head_to_tail += partial_distance;
+    }
+ 
+    return head_to_tail;
+}
+
+
+
+
+bool path_insert_after(PATH *path, PATH_NODE *path_node, PATH_NODE *new_path_node) {
+    if (path == NULL || path_node == NULL || new_path_node == NULL) return false;
+
+    path_node_set_prev(new_path_node, path_node);
+
+    if(path_node_get_next(path_node) == NULL) {
+        path_node_set_next(new_path_node, NULL);
+        path_set_tail(path, new_path_node);
+    } else {
+        path_node_set_next(new_path_node, path_node_get_next(path_node));
+        path_node_set_prev(path_node_get_next(path_node), new_path_node);
+    }
+    
+    path_node_set_next(path_node, new_path_node);
 
     return true;
 }
 
-/*
- *Função para reverter um PATH
- * @param *path  uma variavel ponteiro de PATH com um caminho possível
- */
-PATH *path_reverse(PATH *path)
-{
-    if (path == NULL || path_is_empty(path)) return NULL;
- 
-    PATH_NODE  *current;
-    PATH *reverse_path;
+bool path_insert_before(PATH *path, PATH_NODE *path_node, PATH_NODE *new_path_node) {
+    if (path == NULL || path_node == NULL || new_path_node == NULL) return false;
 
-    reverse_path = path_new();
+    path_node_set_next(new_path_node, path_node);
 
-    for(current = path_get_head(path); current != NULL; current = path_node_get_next(current)) {        
-      path_unshift(reverse_path, path_node_create(path_node_get_key(current)));
+    if(path_node_get_prev(path_node) == NULL) {
+        path_node_set_prev(new_path_node, NULL);
+        path_set_head(path, new_path_node);
+    } else {
+        path_node_set_prev(new_path_node, path_node_get_prev(path_node));
+        path_node_set_next(path_node_get_prev(path_node), new_path_node);
     }
-
-    return reverse_path;
-
-}
-
-/*
- *Função para dividir um PATH a partir de um PATH_NODE  contendo uma key especifica
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível
- * @param  key  uma variavel do tipo inteiro que contém o número de uma cidade   
- * @retun  um variavel do tipo PATH que contem o caminho encontrado apos a divisao
- */
-PATH *path_split_after(PATH *path, int key) {
-    if(path == NULL) return NULL;
-
-    PATH_NODE  *found_path_node; 
-    PATH *after_path;
-
-    found_path_node = path_search(path, key);
-    after_path = path_new();
     
-    if(found_path_node == NULL || path_node_get_next(found_path_node) == NULL) return NULL;
-   
-    path_set_head(after_path, path_node_get_next(found_path_node));
-    path_node_set_prev(path_node_get_next(found_path_node), NULL);
-    path_node_set_next(found_path_node, NULL);
-    path_set_tail(after_path, path_get_tail(path));
-    path_set_tail(path, found_path_node);
+    path_node_set_prev(path_node, new_path_node);
 
-
-    return after_path;
-}
-
-/*
- *Função para concatenar duas variaveis do tipo PATH
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível 
- */
-
-bool path_add_after(PATH *path, int index, PATH_NODE  *path_node) {
-    if (path == NULL) return false;
-
-    PATH_NODE  *found, *after_found; 
-
-    found = path_search(path, index);
-    after_found = path_node_get_next(found);
-
-    if(found == NULL) return false;
-
-    if(path_get_size(path) == 1) {
-        return path_push(path, path_node);
-    }
-
-   return path_node_set_next(path_node, after_found) && path_node_set_prev(path_node, found) && path_node_set_next(found, path_node) && path_node_set_prev(after_found, path_node);
+    return true;
 }
 
 /*
@@ -119,6 +159,78 @@ bool path_add_after(PATH *path, int index, PATH_NODE  *path_node) {
  * @param   int   uma variavel do tipo inteiro que contem a key de PATH_NODE 
  * @param   int   uma variavel do tipo inteiro que contem a key de PATH_NODE 
  */
+
+/*
+ *Função para imprimir um PATH
+ * @param  *path  uma variavel ponteiro de PATH com um caminho possível
+ * @param *path_node  uma variavel ponteiro de PATH_NODE  que contém o número de uma cidade   
+ * 
+ */
+void path_print(PATH *path) {
+    if (path == NULL) return;
+
+    PATH_NODE  *current;
+
+    printf ("\n");
+
+    for(current = path_get_head(path); current != NULL; current = path_node_get_next(current)) {
+        if(current == path_get_head(path)) 
+            printf("%d", path_node_get_key(current));
+        else 
+            printf (" -> %d", path_node_get_key(current)); 
+    }
+
+    printf ("\n");
+
+}
+void path_print_with_start(PATH *path, int start) {
+    if (path == NULL) return;
+
+    PATH_NODE  *current;
+
+    printf ("\n%d", start);
+
+    for(current = path_get_head(path); current != NULL; current = path_node_get_next(current)) printf (" -> %d", path_node_get_key(current)); 
+
+    printf (" -> %d \n", start);
+
+}
+
+/*
+ *Função para checar se uma caminho está cheio
+ * @param  *path  uma variavel ponteiro de PATH com um caminho possível
+ * @retun  um booleano informando se a operação deu certo
+ */
+
+bool path_is_full(PATH *path)
+{
+    if (path == NULL)
+        return true;
+
+    return path_get_size(path) == TAM_MAX_PATH;
+};
+
+bool path_push(PATH *path, PATH_NODE  *path_node)
+{
+    if (path == NULL || path_node == NULL || path_is_full(path))
+        return false;
+
+    if(path_get_tail(path) == NULL) 
+        return path_unshift(path, path_node);
+    else 
+        return path_insert_after(path, path_get_tail(path), path_node);
+}
+
+/*
+ *Função para apagar um PATH
+ * @param  **path  uma variavel ponteiro duplo de PATH com o PATH original
+ */
+void path_free(PATH **path) {
+    if(*path == NULL) return ;
+        free(*path);
+    *path = NULL; 
+}
+
 
 void path_swap(PATH *path, int i, int j)
 {
@@ -132,122 +244,24 @@ void path_swap(PATH *path, int i, int j)
     if (item_a == NULL || item_b == NULL)
         return;
 
-   path_add_after(path, i, path_node_create(INT_MAX - j));
-   path_delete(path,i);
-   path_add_after(path, j, path_node_create(i));
-   path_delete(path,j);
+   path_insert_after(path, item_a, path_node_create(INT_MAX - j));
+   path_delete(path,item_a);
+   path_insert_after(path, item_b, path_node_create(i));
+   path_delete(path,item_b);
    path_node_set_key(path_search(path, INT_MAX - j), j);
 }
-
-/*
- *Função para imprimir um PATH
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível
- * @param *path_node  uma variavel ponteiro de PATH_NODE  que contém o número de uma cidade   
- * 
- */
-void path_print(PATH *path) {
-    if (path == NULL) return;
-
-    PATH_NODE  *current;
-
-    printf ("\n ");
-
-    for(current = path_get_head(path); current != NULL; current = path_node_get_next(current)) {
-        if(current == path_get_head(path)) 
-            printf(" %d ", path_node_get_key(current));
-        else 
-            printf (" -> %d ", path_node_get_key(current)); 
-    }
-
-    printf ("\n ");
-
-}
-/*
- *Função para adicionar no final
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível
- * @retun  um booleano informando se a operação deu certo
- */
-/*
- *Função para checar se uma caminho está vazio
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível
- * @retun  um booleano informando se a operação deu certo
- */
-/*bool path_is_empty(PATH *path)
-{
-    return path_get_head(path) == NULL;
-}*/
-
-/*
- *Função para checar se uma caminho está cheio
- * @param  *path  uma variavel ponteiro de PATH com um caminho possível
- * @retun  um booleano informando se a operação deu certo
- */
-bool path_is_full(PATH *path)
-{
-    if (path == NULL)
-        return true;
-
-    return path_get_size(path) == TAM_MAX_PATH;
-};
-bool path_push(PATH *path, PATH_NODE  *path_node)
-{
-
-    if (path == NULL || path_node == NULL || path_is_full(path))
-        return false;
-
-    
-    if (path_is_empty(path))
-    {
-        path_set_head(path,path_node);
-    }
-    else
-    {
-        path_node_set_next(path_node, NULL);
-        path_node_set_next(path_get_tail(path), path_node);
-        path_node_set_prev(path_node, path_get_tail(path));
-    }
-
-    path_set_tail(path, path_node);
-
-    return true;
-}
-
-
-/*
- *Função para apagar um PATH
- * @param  **path  uma variavel ponteiro duplo de PATH com o PATH original
- */
-void path_free(PATH **path) {
-    if(*path == NULL) return ;
-        free(*path);
-    *path = NULL; 
-}
-
 
 /*
  *Função para apagar o primeiro PATH_NODE  de um PATH
  * @param  *path  uma variavel ponteiro de PATH com um path qualquer
  * @return retorna o PATH_NODE  que estava no comeco do PATH 
  */
-PATH_NODE  *path_delete_head(PATH *path)
+void path_delete_head(PATH *path)
 {
     if (path == NULL || path_is_empty(path))
-        return NULL;
+        return;
 
-    PATH_NODE  *temp;
-    temp = path_get_head(path);
-
-    if(path_get_size(path) == 1) {
-        path_set_head(path, NULL);
-        path_set_tail(path, NULL);
-
-        return temp;
-    }
-    
-    path_node_set_prev(path_node_get_next(temp), NULL);
-    path_set_head(path, path_node_get_next(temp));
-
-    return temp;
+    path_delete(path, path_get_head(path));
 }
 
 /*
@@ -255,25 +269,12 @@ PATH_NODE  *path_delete_head(PATH *path)
  * @param  *path  uma variavel ponteiro de PATH com um path qualquer
  * @return retorna o PATH_NODE  que estava no fim do PATH 
  */
-PATH_NODE  *path_delete_tail(PATH *path)
+void  path_delete_tail(PATH *path)
 {
    if (path == NULL || path_is_empty(path))
-        return NULL;
+        return;
 
-    PATH_NODE  *temp;
-    temp = path_get_tail(path);
-
-    if(path_get_size(path) == 1) {
-        path_set_head(path, NULL);
-        path_set_tail(path, NULL);
-
-        return temp;
-    }
-
-    path_node_set_next(path_node_get_prev(temp), NULL);
-    path_set_tail(path, path_node_get_prev(temp));
-
-    return temp;
+    path_delete(path, path_get_tail(path));
 }
 
 /*
@@ -296,31 +297,21 @@ PATH_NODE  *path_search(PATH *path, int key)
     return found;
 }
 
-/*
- *Função para deletar um PATH_NODE  com uma key especifica
- * @param  *path  uma variavel ponteiro de PATH com um path qualquer
- * @param   key   uma variavel inteira com o valor da key (cidade)
- * @return retorna o PATH_NODE  deletado 
- */
-PATH_NODE  *path_delete(PATH *path, int key)
+
+void  path_delete(PATH *path, PATH_NODE *path_node)
 {
     if (path == NULL || path_is_empty(path))
-        return NULL;
+        return;
 
-    PATH_NODE  *deleted;
-    deleted = path_search(path, key);
+    if(path_node_get_prev(path_node) == NULL)
+        path_set_head(path, path_node_get_next(path_node)); 
+    else 
+        path_node_set_next(path_node_get_prev(path_node), path_node_get_next(path_node));
 
-    if (path_node_get_key(deleted) == path_node_get_key(path_get_head(path)))
-        path_set_head(path, path_node_get_next(path_get_head(path)));
-    else
-        path_node_set_next(path_node_get_prev(deleted), path_node_get_next(deleted));
-
-    if (path_node_get_key(deleted) == path_node_get_key(path_get_tail(path)))
-        path_set_tail(path, path_node_get_prev(deleted));
-    else
-        path_node_set_prev(path_node_get_next(deleted), path_node_get_prev(deleted));
-
-    return deleted;
+    if(path_node_get_next(path_node) == NULL)
+            path_set_tail(path, path_node_get_prev(path_node)); 
+    else 
+        path_node_set_prev(path_node_get_next(path_node), path_node_get_prev(path_node));   
 }
 
 /*
@@ -404,7 +395,7 @@ PATH_NODE  *path_get_tail(PATH *path)
  */
 bool path_is_empty(PATH *path)
 {
-    return path_get_head(path) == NULL && path_get_tail(path) == NULL;
+    return path_get_head(path) == NULL || path_get_tail(path) == NULL;
 }
 
 /*

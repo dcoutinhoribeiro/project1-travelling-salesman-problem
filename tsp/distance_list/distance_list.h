@@ -16,21 +16,26 @@
     bool distance_list_is_full(DISTANCE_LIST *distance_list);
     bool distance_list_set_head(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *head); ////@
     bool distance_list_set_tail(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *tail); //  //@
-    bool distance_list_push(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *distance_list_node); //@ 
     bool distance_list_is_empty(DISTANCE_LIST *distance_list); // //@
     bool distance_list_is_full(DISTANCE_LIST *distance_list); // @@
+    bool distance_list_unshift(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *distance_list_node); //@
+    bool distance_list_push(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *distance_list_node); //@ 
+    bool distance_list_insert_before(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE *distance_list_node, DISTANCE_LIST_NODE *new_distance_list_node); //
+    bool distance_list_insert_after(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE *distance_list_node, DISTANCE_LIST_NODE *new_distance_list_node);
 
     void distance_list_free(DISTANCE_LIST **distance_list); // 
     void distance_list_print(DISTANCE_LIST *distance_list); // @@
+    void  distance_list_delete(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE *distance_list_node); // @@
+    void  distance_list_delete_head(DISTANCE_LIST *distance_list); // @
+    void  distance_list_delete_tail(DISTANCE_LIST *distance_list); // @@
 
-    DISTANCE_LIST_NODE  *distance_list_delete(DISTANCE_LIST *distance_list, int key); // @@
-    DISTANCE_LIST_NODE  *distance_list_delete_head(DISTANCE_LIST *distance_list); // @
-    DISTANCE_LIST_NODE  *distance_list_delete_tail(DISTANCE_LIST *distance_list); // @@
     DISTANCE_LIST_NODE  *distance_list_get_head(DISTANCE_LIST *distance_list); //  //@
     DISTANCE_LIST_NODE  *distance_list_get_tail(DISTANCE_LIST *distance_list); // //@
     DISTANCE_LIST_NODE  *distance_list_search_with_from_to(DISTANCE_LIST *distance_list, int from, int to); // @@
     DISTANCE_LIST_NODE  *distance_list_search(DISTANCE_LIST *distance_list, int key); // @@
 
     DISTANCE_LIST *distance_list_new();  //@
+    DISTANCE_LIST *distance_list_filter_start(DISTANCE_LIST * distance_list, int start);  //@
+    DISTANCE_LIST *distance_list_filter_out_start(DISTANCE_LIST * distance_list, int start);  //@
 
 #endif 

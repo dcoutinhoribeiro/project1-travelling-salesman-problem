@@ -1,8 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
+
 #include "tsp.h"
 #include "distance_list/distance_list.h"
-#include "../route/route.h"
+#include "brute_force/brute_force.h"
+#include "../path/path.h"
+
+#define LOG true
 
 DISTANCE_LIST *tsp_read_distance_file (char* filename, int * size)
 {
@@ -38,15 +43,34 @@ DISTANCE_LIST *tsp_read_distance_file (char* filename, int * size)
     return distance_list;  
 }
 
-int tsp_get_shortest_route_from_file(char* filename) {
+void tsp_solve_brute_force(char* filename) {
+    int start;
+    long clock_start, clock_end;
+    struct timeval timecheck;
     DISTANCE_LIST *distance_list = distance_list_new();
+    PATH* path;
     
+    printf("\nEntre com cidade de partida: \n");
+    scanf("%d", &start);
+
     int size = 0;
     distance_list = tsp_read_distance_file (filename, &size);
     
-    route_print_best_route(distance_list, size);
+    gettimeofday(&timecheck, NULL);
+    clock_start = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+    path = brute_force(distance_list, size, start);
+    gettimeofday(&timecheck, NULL);
+    clock_end = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+
+    long milliseconds = (clock_end - clock_start);
+
+    path_print(path);
+
+    if (LOG == true) {
+        printf("\n DISTANCIA MELHOR ROTA:  %d \n", path_calculate_distance(path, distance_list, start));
+        printf("\n TEMPO DE EXECUÇÃO BRUTE FORCE:  %f s \n", (float)milliseconds/1000);
+    }
 }
 
-void tsp_print_shortest_route_from_file(char* filename) {
-    tsp_get_shortest_route_from_file(filename);
-}
+
+

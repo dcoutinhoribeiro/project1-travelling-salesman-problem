@@ -1,5 +1,6 @@
 #ifndef PATH_NODE_H
 	#define PATH_NODE_H
+	#define NOT_FOUND -1
 	#include <stdbool.h>
 
 	typedef struct path_node_ PATH_NODE ;

@@ -10,6 +10,47 @@ struct distance_list_
     DISTANCE_LIST_NODE  *tail;
 };
 
+DISTANCE_LIST *distance_list_filter_out_start(DISTANCE_LIST * distance_list, int start) {
+    DISTANCE_LIST *new_distance_list;
+    DISTANCE_LIST_NODE *current; 
+
+    new_distance_list = distance_list_new();
+
+    for(current = distance_list_get_head(distance_list); current != NULL; current = distance_list_node_get_next(current)) 
+        if(distance_list_node_get_from(current) != start && distance_list_node_get_to(current) != start)
+        {
+            DISTANCE_LIST_NODE *new_node = distance_list_node_create(distance_list_node_get_key(current));
+            distance_list_node_set_from(new_node, distance_list_node_get_from(current));
+            distance_list_node_set_to(new_node, distance_list_node_get_to(current));  
+            distance_list_node_set_distance(new_node, distance_list_node_get_distance(current)); 
+
+            distance_list_push(new_distance_list, new_node);
+        }
+
+    return new_distance_list;
+}
+
+DISTANCE_LIST *distance_list_filter_start(DISTANCE_LIST * distance_list, int start) {
+    DISTANCE_LIST *new_distance_list;
+    DISTANCE_LIST_NODE *current; 
+
+    new_distance_list = distance_list_new();
+
+    for(current = distance_list_get_head(distance_list); current != NULL; current = distance_list_node_get_next(current)) 
+        if(distance_list_node_get_from(current) == start || distance_list_node_get_to(current) == start)
+        {
+            DISTANCE_LIST_NODE *new_node = distance_list_node_create(distance_list_node_get_key(current));
+            distance_list_node_set_from(new_node, distance_list_node_get_from(current));
+            distance_list_node_set_to(new_node, distance_list_node_get_to(current));   
+            distance_list_node_set_distance(new_node, distance_list_node_get_distance(current)); 
+
+            distance_list_push(new_distance_list, new_node);
+        }
+
+    return new_distance_list;
+}
+
+
 int distance_list_node_get_distance_from_to(DISTANCE_LIST *distance_list, int from, int to) {
     if (distance_list == NULL) return -1;
  
@@ -41,26 +82,70 @@ bool distance_list_is_full(DISTANCE_LIST *distance_list)
     return distance_list_get_size(distance_list) == TAM_MAX;
 };
 
+bool distance_list_unshift(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *distance_list_node)
+{
+    if (distance_list == NULL || distance_list_node == NULL || distance_list_is_full(distance_list))
+        return false;
+
+    if(distance_list_get_head(distance_list) == NULL) {
+        distance_list_set_head(distance_list, distance_list_node);
+        distance_list_set_tail(distance_list, distance_list_node); 
+        distance_list_node_set_next(distance_list_node, NULL);
+        distance_list_node_set_prev(distance_list_node, NULL);
+        
+        return true;
+    } else 
+        return distance_list_insert_before(distance_list, distance_list_get_head(distance_list), distance_list_node);
+}
+
+
+
+bool distance_list_insert_after(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE *distance_list_node, DISTANCE_LIST_NODE *new_distance_list_node) {
+    if (distance_list == NULL || distance_list_node == NULL || new_distance_list_node == NULL) return false;
+
+    distance_list_node_set_prev(new_distance_list_node, distance_list_node);
+
+    if(distance_list_node_get_next(distance_list_node) == NULL) {
+        distance_list_node_set_next(new_distance_list_node, NULL);
+        distance_list_set_tail(distance_list, new_distance_list_node);
+    } else {
+        distance_list_node_set_next(new_distance_list_node, distance_list_node_get_next(distance_list_node));
+        distance_list_node_set_prev(distance_list_node_get_next(distance_list_node), new_distance_list_node);
+    }
+    
+    distance_list_node_set_next(distance_list_node, new_distance_list_node);
+
+    return true;
+}
+
+bool distance_list_insert_before(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE *distance_list_node, DISTANCE_LIST_NODE *new_distance_list_node) {
+    if (distance_list == NULL || distance_list_node == NULL || new_distance_list_node == NULL) return false;
+
+    distance_list_node_set_next(new_distance_list_node, distance_list_node);
+
+    if(distance_list_node_get_prev(distance_list_node) == NULL) {
+        distance_list_node_set_prev(new_distance_list_node, NULL);
+        distance_list_set_head(distance_list, new_distance_list_node);
+    } else {
+        distance_list_node_set_prev(new_distance_list_node, distance_list_node_get_prev(distance_list_node));
+        distance_list_node_set_next(distance_list_node_get_prev(distance_list_node), new_distance_list_node);
+    }
+    
+    distance_list_node_set_prev(distance_list_node, new_distance_list_node);
+
+    return true;
+}
+
+
 bool distance_list_push(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE  *distance_list_node)
 {
     if (distance_list == NULL || distance_list_node == NULL || distance_list_is_full(distance_list))
         return false;
 
-    if (distance_list_is_empty(distance_list))
-    {
-        distance_list_set_tail(distance_list, distance_list_node);
-        //adicionei distance_list_set_head
-        distance_list_set_head(distance_list,distance_list_node);
-    }
-    else
-    {
-        distance_list_node_set_next(distance_list_get_tail(distance_list), distance_list_node);
-        distance_list_node_set_prev(distance_list_node, distance_list_get_tail(distance_list));
-    }
-
-    distance_list_set_tail(distance_list, distance_list_node);
-
-    return true;
+    if(distance_list_get_tail(distance_list) == NULL) 
+        return distance_list_unshift(distance_list, distance_list_node);
+    else 
+        return distance_list_insert_after(distance_list, distance_list_get_tail(distance_list), distance_list_node);
 }
 
 
@@ -70,46 +155,20 @@ void distance_list_free(DISTANCE_LIST **distance_list) {
     *distance_list = NULL; 
 }
 
-DISTANCE_LIST_NODE  *distance_list_delete_head(DISTANCE_LIST *distance_list)
+void distance_list_delete_head(DISTANCE_LIST *distance_list)
 {
     if (distance_list == NULL || distance_list_is_empty(distance_list))
-        return NULL;
+        return;
 
-    DISTANCE_LIST_NODE  *temp;
-    temp = distance_list_get_head(distance_list);
-
-    if(distance_list_get_size(distance_list) == 1) {
-        distance_list_set_head(distance_list, NULL);
-        distance_list_set_tail(distance_list, NULL);
-
-        return temp;
-    }
-    
-    distance_list_node_set_prev(distance_list_node_get_next(temp), NULL);
-    distance_list_set_head(distance_list, distance_list_node_get_next(temp));
-
-    return temp;
+    distance_list_delete(distance_list, distance_list_get_head(distance_list));
 }
 
-DISTANCE_LIST_NODE  *distance_list_delete_tail(DISTANCE_LIST *distance_list)
+void  distance_list_delete_tail(DISTANCE_LIST *distance_list)
 {
    if (distance_list == NULL || distance_list_is_empty(distance_list))
-        return NULL;
+        return;
 
-    DISTANCE_LIST_NODE  *temp;
-    temp = distance_list_get_tail(distance_list);
-
-    if(distance_list_get_size(distance_list) == 1) {
-        distance_list_set_head(distance_list, NULL);
-        distance_list_set_tail(distance_list, NULL);
-
-        return temp;
-    }
-
-    distance_list_node_set_next(distance_list_node_get_prev(temp), NULL);
-    distance_list_set_tail(distance_list, distance_list_node_get_prev(temp));
-
-    return temp;
+    distance_list_delete(distance_list, distance_list_get_tail(distance_list));
 }
 
 DISTANCE_LIST_NODE  *distance_list_search_with_from_to(DISTANCE_LIST *distance_list, int from, int to)
@@ -142,25 +201,20 @@ DISTANCE_LIST_NODE  *distance_list_search(DISTANCE_LIST *distance_list, int key)
 
 
 
-DISTANCE_LIST_NODE  *distance_list_delete(DISTANCE_LIST *distance_list, int key)
+void distance_list_delete(DISTANCE_LIST *distance_list, DISTANCE_LIST_NODE *distance_list_node)
 {
     if (distance_list == NULL || distance_list_is_empty(distance_list))
-        return NULL;
+        return;
 
-    DISTANCE_LIST_NODE  *deleted;
-    deleted = distance_list_search(distance_list, key);
+    if(distance_list_node_get_prev(distance_list_node) == NULL)
+        distance_list_set_head(distance_list, distance_list_node_get_next(distance_list_node)); 
+    else 
+        distance_list_node_set_next(distance_list_node_get_prev(distance_list_node), distance_list_node_get_next(distance_list_node));
 
-    if (distance_list_node_get_key(deleted) == distance_list_node_get_key(distance_list_get_head(distance_list)))
-        distance_list_set_head(distance_list, distance_list_node_get_next(distance_list_get_head(distance_list)));
-    else
-        distance_list_node_set_next(distance_list_node_get_prev(deleted), distance_list_node_get_next(deleted));
-
-    if (distance_list_node_get_key(deleted) == distance_list_node_get_key(distance_list_get_tail(distance_list)))
-        distance_list_set_tail(distance_list, distance_list_node_get_prev(deleted));
-    else
-        distance_list_node_set_prev(distance_list_node_get_next(deleted), distance_list_node_get_prev(deleted));
-
-    return deleted;
+    if(distance_list_node_get_next(distance_list_node) == NULL)
+            distance_list_set_tail(distance_list, distance_list_node_get_prev(distance_list_node)); 
+    else 
+        distance_list_node_set_prev(distance_list_node_get_next(distance_list_node), distance_list_node_get_prev(distance_list_node));   
 }
 
 
