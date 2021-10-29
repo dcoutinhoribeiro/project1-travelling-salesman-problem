@@ -8,16 +8,11 @@ void main(int argc, char **argv)
 {
     int start, i, c;
     char *filename = NULL;
-    bool ga = false;
-
 
     while ((c = getopt(argc, argv, "f:a")) != -1)
     {
         switch (c)
         {
-            case 'a':
-                ga = true;
-                break;
             case 'f':
                 filename = optarg;
                 break;
@@ -35,17 +30,9 @@ void main(int argc, char **argv)
                 abort();
         }
     }
-    
-    printf("\n %s \n", filename);
 
-    if(ga == false) 
-    {
-        tsp_solve_brute_force(filename);
-    }
-    else 
-    {
-        printf("Aqui vem o algoritmo genetico");
-    }
+    //chamando a função que resolve o problema do caixeiro viajante
+    tsp_solve_brute_force(filename);
 
     return;
 }

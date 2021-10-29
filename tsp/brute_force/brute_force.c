@@ -6,7 +6,6 @@
 #include "../../path/path_node/path_node.h"
 #include "../distance_list/distance_list.h"
 
-
 PATH *brute_force(DISTANCE_LIST *distance_list, int size, int start) {
     if(distance_list == NULL) return NULL;
 
@@ -17,7 +16,7 @@ PATH *brute_force(DISTANCE_LIST *distance_list, int size, int start) {
 
     if(current_path == NULL || best_path == NULL) return NULL;
 
-    path_populate(current_path, size, start, false);
+    path_populate(current_path, size, start);
     path_copy_to(best_path, current_path);
 
     int shortest_distance_so_far = path_calculate_distance(current_path, distance_list, start);

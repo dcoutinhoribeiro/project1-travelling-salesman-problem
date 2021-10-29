@@ -7,9 +7,9 @@
 #include "brute_force/brute_force.h"
 #include "../path/path.h"
 
-#define LOG true
+#define LOG false
 
-DISTANCE_LIST *tsp_read_distance_file (char* filename, int * size)
+DISTANCE_LIST *tsp_read_distance_file (char* filename, int* size)
 {
     DISTANCE_LIST *distance_list = distance_list_new();
 
@@ -64,7 +64,7 @@ void tsp_solve_brute_force(char* filename) {
 
     long milliseconds = (clock_end - clock_start);
 
-    path_print_with_start(path, start);
+    path_print_with_start(path, distance_list, start);
 
     if (LOG == true) {
         printf("\n DISTANCIA MELHOR ROTA:  %d \n", path_calculate_distance(path, distance_list, start));
