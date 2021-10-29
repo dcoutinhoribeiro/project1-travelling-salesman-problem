@@ -21,6 +21,8 @@ PATH *brute_force(DISTANCE_LIST *distance_list, int size, int start) {
 
     int shortest_distance_so_far = path_calculate_distance(current_path, distance_list, start);
 
+    printf("\n⚙️  Trabalhando...  \n⏳ Isto pode levar uns minutinhos ⏳ \n");
+
     while (current_path != NULL) {
         current_path = path_get_next_permutation(current_path);
         

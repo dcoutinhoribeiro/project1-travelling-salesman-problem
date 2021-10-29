@@ -8,11 +8,17 @@ void main(int argc, char **argv)
 {
     int start, i, c;
     char *filename = NULL;
+    bool lflag = false;
 
-    while ((c = getopt(argc, argv, "f:a")) != -1)
+    printf("\n### Problema do Caixero Viajante ### \n");
+
+    while ((c = getopt(argc, argv, "f:l")) != -1)
     {
         switch (c)
         {
+            case 'l':
+                lflag = true;
+                break;
             case 'f':
                 filename = optarg;
                 break;
@@ -32,7 +38,7 @@ void main(int argc, char **argv)
     }
 
     //chamando a função que resolve o problema do caixeiro viajante
-    tsp_solve_brute_force(filename);
+    tsp_solve_brute_force(filename, lflag);
 
     return;
 }
