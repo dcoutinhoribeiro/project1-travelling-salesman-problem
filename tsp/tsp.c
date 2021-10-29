@@ -7,8 +7,6 @@
 #include "brute_force/brute_force.h"
 #include "../path/path.h"
 
-#define LOG false
-
 DISTANCE_LIST *tsp_read_distance_file (char* filename, int* size)
 {
     DISTANCE_LIST *distance_list = distance_list_new();
@@ -17,6 +15,8 @@ DISTANCE_LIST *tsp_read_distance_file (char* filename, int* size)
 
     FILE* file = fopen(filename, "r");
     int i = 0;
+
+    if (file == NULL) return NULL;
 
     fscanf(file, "%d", size);     
 
@@ -43,19 +43,27 @@ DISTANCE_LIST *tsp_read_distance_file (char* filename, int* size)
     return distance_list;  
 }
 
-void tsp_solve_brute_force(char* filename) {
-    int start;
+void tsp_solve_brute_force(char* filename, bool lflag) {
+    int start = -1;
     long clock_start, clock_end;
     struct timeval timecheck;
     DISTANCE_LIST *distance_list = distance_list_new();
     PATH* path;
     
-    printf("\nEntre com cidade de partida: \n");
-    scanf("%d", &start);
 
-    int size = 0;
+    int size = INT_MAX;
     distance_list = tsp_read_distance_file (filename, &size);
-    
+
+    if(distance_list == NULL){
+        printf("\nFilename inválido 😔\n");
+        return;
+    }
+     
+    do {
+        printf("\nEntre com cidade de partida: \n");
+        scanf("%d", &start);
+    } while(start < 1 || start > size);
+
     gettimeofday(&timecheck, NULL);
     clock_start = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
     path = brute_force(distance_list, size, start);
@@ -64,11 +72,12 @@ void tsp_solve_brute_force(char* filename) {
 
     long milliseconds = (clock_end - clock_start);
 
+    printf("\nO melhor caminho é (a ordem dos dados é cidade de origem, rota e distancia): \n \n");
+
     path_print_with_start(path, distance_list, start);
 
-    if (LOG == true) {
-        printf("\n DISTANCIA MELHOR ROTA:  %d \n", path_calculate_distance(path, distance_list, start));
-        printf("\n TEMPO DE EXECUÇÃO BRUTE FORCE:  %f s \n", (float)milliseconds/1000);
+    if (lflag == true) {
+        printf("\nTEMPO DE EXECUÇÃO BRUTE FORCE:  %f s \n", (float)milliseconds/1000);
     }
 }
 

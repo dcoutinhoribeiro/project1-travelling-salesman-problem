@@ -2,6 +2,7 @@
 #define DISTANCE_LIST_NODE_H
 #include <stdbool.h>
 
+//definindo a struct distance_list_node
 typedef struct distance_list_node_ DISTANCE_LIST_NODE;
 
 /*

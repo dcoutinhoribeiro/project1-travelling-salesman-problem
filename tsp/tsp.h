@@ -7,7 +7,7 @@
  *Função para resolver o problema do caixeiro viajante pelo método de força bruta
  * @param *filename variável do tipo ponteiro para char que contém o nome do arquivo
  */
-void tsp_solve_brute_force(char *filename);
+void tsp_solve_brute_force(char *filename, bool lflag);
 
 /*
  *Função para ler um arquivo contendo as cidades e as repectivas distâncias entre elas

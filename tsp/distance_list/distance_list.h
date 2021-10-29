@@ -8,7 +8,7 @@
 
 #include "distance_list_node/distance_list_node.h"
 
-//definindo a distance_list_
+//definindo a struct distance_list_
 typedef struct distance_list_ DISTANCE_LIST;
 
 /*
