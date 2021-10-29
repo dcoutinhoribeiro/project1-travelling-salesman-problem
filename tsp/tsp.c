@@ -1,24 +1,29 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
+
 #include "tsp.h"
 #include "distance_list/distance_list.h"
-#include "../route/route.h"
+#include "brute_force/brute_force.h"
+#include "../path/path.h"
 
-DISTANCE_LIST *tsp_read_distance_file (char* filename)
+#define LOG false
+
+DISTANCE_LIST *tsp_read_distance_file (char* filename, int* size)
 {
     DISTANCE_LIST *distance_list = distance_list_new();
 
     if(distance_list == NULL) return NULL; 
 
-    FILE* file = fopen (filename, "r");
-    int i = 0, size = 0;
+    FILE* file = fopen(filename, "r");
+    int i = 0;
 
-    size = fscanf (file, "%d", &i);     
+    fscanf(file, "%d", size);     
 
-    while(!!feof (file)){ 
+    while(!feof (file)){ 
         int from, to, distance;
 
-        fscanf("%d %d %d", &from, &to, &distance);
+        fscanf(file,"%d %d %d", &from, &to, &distance);
 
         DISTANCE_LIST_NODE *distance_list_node;
 
@@ -38,11 +43,34 @@ DISTANCE_LIST *tsp_read_distance_file (char* filename)
     return distance_list;  
 }
 
-int tsp_get_shortest_route_from_file(char* filename) {
+void tsp_solve_brute_force(char* filename) {
+    int start;
+    long clock_start, clock_end;
+    struct timeval timecheck;
     DISTANCE_LIST *distance_list = distance_list_new();
+    PATH* path;
+    
+    printf("\nEntre com cidade de partida: \n");
+    scanf("%d", &start);
 
-    distance_list = tsp_read_distance_file (filename);
-    distance_list_print(distance_list);
+    int size = 0;
+    distance_list = tsp_read_distance_file (filename, &size);
+    
+    gettimeofday(&timecheck, NULL);
+    clock_start = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+    path = brute_force(distance_list, size, start);
+    gettimeofday(&timecheck, NULL);
+    clock_end = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
 
+    long milliseconds = (clock_end - clock_start);
 
+    path_print_with_start(path, distance_list, start);
+
+    if (LOG == true) {
+        printf("\n DISTANCIA MELHOR ROTA:  %d \n", path_calculate_distance(path, distance_list, start));
+        printf("\n TEMPO DE EXECUÇÃO BRUTE FORCE:  %f s \n", (float)milliseconds/1000);
+    }
 }
+
+
+

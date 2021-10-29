@@ -38,15 +38,17 @@ bool path_node_set_next(PATH_NODE  *path_node, PATH_NODE  *next){
 }
 
 PATH_NODE  *path_node_create (int key){
-          PATH_NODE  *path_node;
-          
-          path_node = (PATH_NODE  *) malloc(sizeof(PATH_NODE ));
-          
-          if (path_node != NULL){
-             path_node->key = key;
-             return(path_node);
-          }
-          return(NULL);
+  PATH_NODE  *path_node;
+  
+  path_node = (PATH_NODE  *) malloc(sizeof(PATH_NODE ));
+  
+  if (path_node != NULL){
+      path_node_set_key(path_node, key);
+      path_node_set_prev(path_node, NULL);
+      path_node_set_next(path_node, NULL);
+      return(path_node);
+  }
+  return(NULL);
 }
 
 bool path_node_free(PATH_NODE  **path_node){

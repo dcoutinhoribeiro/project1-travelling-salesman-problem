@@ -41,24 +41,26 @@ bool distance_list_node_set_next(DISTANCE_LIST_NODE  *distance_list_node, DISTAN
 }
 
 DISTANCE_LIST_NODE  *distance_list_node_create (int key){
-          DISTANCE_LIST_NODE  *distance_list_node;
-          
-          distance_list_node = (DISTANCE_LIST_NODE  *) malloc(sizeof(DISTANCE_LIST_NODE ));
-          
-          if (distance_list_node != NULL){
-             distance_list_node->key = key;
-             return(distance_list_node);
-          }
-          return(NULL);
+  DISTANCE_LIST_NODE  *distance_list_node;
+
+  distance_list_node = (DISTANCE_LIST_NODE  *) malloc(sizeof(DISTANCE_LIST_NODE ));
+
+  if (distance_list_node != NULL){
+      distance_list_node_set_key(distance_list_node, key);
+      distance_list_node_set_prev(distance_list_node, NULL);
+      distance_list_node_set_next(distance_list_node, NULL);
+      return(distance_list_node);
+  }
+  return(NULL);
 }
 
 bool distance_list_node_free(DISTANCE_LIST_NODE  **distance_list_node){
-   if (*distance_list_node != NULL){
-      free (*distance_list_node);
-      *distance_list_node = NULL; 
-      return(true);
-   }
-   return(false);
+  if (*distance_list_node != NULL){
+    free (*distance_list_node);
+    *distance_list_node = NULL; 
+    return(true);
+  }
+  return(false);
 }
 
 int distance_list_node_get_key(DISTANCE_LIST_NODE  *distance_list_node){

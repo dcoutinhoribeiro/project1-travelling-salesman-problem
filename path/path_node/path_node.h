@@ -1,11 +1,12 @@
-#ifndef PATH_NODE _H
-	#define PATH_NODE _H
+#ifndef PATH_NODE_H
+	#define PATH_NODE_H
+	#define NOT_FOUND -1
 	#include <stdbool.h>
 
 	typedef struct path_node_ PATH_NODE ;
 
-	int path_node_get_key(PATH_NODE  *path_node);
-	int path_node_get_city(PATH_NODE  *path_node);
+	int path_node_get_key(PATH_NODE  *path_node);//Não é a mesma coisa que a linha 9?
+	int path_node_get_city(PATH_NODE  *path_node);//
 	bool path_node_free(PATH_NODE  **path_node);
 	bool path_node_set_key(PATH_NODE  *path_node, int key);
 	bool path_node_set_next(PATH_NODE  *path_node, PATH_NODE  *next);
